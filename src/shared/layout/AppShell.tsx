@@ -1,133 +1,72 @@
-import { useState, useEffect, type PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../app/auth/hooks/use-auth';
-import { ThemeToggle, CurrencySelector, SideBarLink } from '../components';
-import { appShell, labels, admin } from '../content/strings';
-import { button, surface, gradient } from '../design-system/surfaces';
-import { eyebrow, sidebarLabel } from '../design-system/typography';
-import { sectionGap } from '../design-system/layout';
+import { CurrencySelector } from '../components';
+import '../../app/dashboard/DashboardPage.css';
 
 interface AppShellProps extends PropsWithChildren {
   title: string;
   subtitle: string;
 }
 
+type IconName = 'home' | 'market' | 'portfolio' | 'activity' | 'star' | 'friends';
+
+function Icon({ name }: { name: IconName }) {
+  const paths: Record<IconName, ReactNode> = {
+    home: <><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/></>,
+    market: <><path d="M4 19V5M4 19h16m-13-4 4-5 3 3 5-7"/></>,
+    portfolio: <><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5h8v2"/></>,
+    activity: <><path d="M4 6h16M4 12h10M4 18h13"/><circle cx="18" cy="12" r="2"/></>,
+    star: <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9Z"/>,
+    friends: <><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c.5-4 2.5-6 6-6s5.5 2 6 6M15 15c3 0 5 1.7 5.5 5"/></>,
+  };
+  return <svg viewBox="0 0 24 24" className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
+}
+
+const railNav: Array<[string, string, IconName]> = [
+  ['/dashboard', 'Inicio', 'home'],
+  ['/market', 'Mercado', 'market'],
+  ['/portfolio', 'Cartera', 'portfolio'],
+  ['/activity', 'Actividad', 'activity'],
+  ['/watchlist', 'Favoritos', 'star'],
+  ['/friends', 'Amigos', 'friends'],
+];
+
 export function AppShell({ children, title, subtitle }: AppShellProps) {
+  const { pathname } = useLocation();
   const { user, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSidebarOpen(false);
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, []);
-
-  useEffect(() => {
-    document.body.style.overflow = sidebarOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [sidebarOpen]);
-
-  const closeSidebar = () => setSidebarOpen(false);
+  const isMarket = pathname === '/market';
 
   return (
-    <div className="grid min-h-screen w-full min-w-0 grid-cols-[minmax(240px,280px)_1fr] max-[1180px]:grid-cols-1">
-      <aside className={`${gradient.sidebar} sticky top-0 flex h-screen flex-col gap-4 overflow-y-auto p-6 text-white max-[1180px]:static max-[1180px]:h-auto max-[1180px]:order-2 max-[720px]:fixed max-[720px]:inset-y-0 max-[720px]:left-0 max-[720px]:z-50 max-[720px]:w-[280px] max-[720px]:p-4 max-[720px]:shadow-2xl max-[720px]:transition-transform max-[720px]:duration-300 ${sidebarOpen ? 'max-[720px]:translate-x-0' : 'max-[720px]:-translate-x-full'}`}>
-        <button
-          type="button"
-          onClick={closeSidebar}
-          className="hidden self-end rounded-full p-1.5 text-white/80 transition-colors hover:bg-white/10 hover:text-white max-[720px]:flex"
-          aria-label="Cerrar menu de navegacion"
-        >
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
-        </button>
+    <div className="quill-shell m-1 min-h-[calc(100vh-.5rem)] overflow-hidden rounded-xl border border-[#304652] bg-[var(--color-background)] text-[12px] shadow-[0_16px_55px_#0004] max-[620px]:m-0 max-[620px]:min-h-screen max-[620px]:rounded-none max-[620px]:border-0">
+      <header className="quill-topbar flex min-h-[72px] items-center gap-6 border-b border-[var(--main-page-border)] bg-[#0b171f] px-5">
+        <NavLink to="/dashboard" className="flex items-center gap-2 text-[23px] font-bold tracking-[-.8px] text-[var(--color-text)]" aria-label="Quill, inicio">
+          <svg className="h-[23px] w-[23px] text-[var(--color-accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M20 4c-7 0-12 3-14 10l-2 6 6-2c7-2 10-7 10-14Z"/><path d="M6 18 16 8"/></svg>
+          <span>quill<span className="text-[var(--color-accent)]">.</span></span>
+        </NavLink>
+        <details className="quill-user-menu ml-auto">
+          <summary aria-label="Abrir menú de cuenta">•••</summary>
+          <div>
+            <span>{user?.fullName}</span>
+            <CurrencySelector />
+            <NavLink to="/settings">Configuración</NavLink>
+            <button type="button" onClick={logout}>Salir</button>
+          </div>
+        </details>
+      </header>
 
-        <div>
-          <p className={eyebrow}>{appShell.brandEyebrow}</p>
-          <h2 className="mb-2 mt-[0.2rem] text-[2rem]">{appShell.brandTitle}</h2>
-          <p className="text-[var(--main-page-inverse-text-soft)]">
-            {appShell.brandDescription}
-          </p>
-        </div>
-
-        <div className={`${surface.inverseCard} grid gap-[0.2rem] p-4 text-white`}>
-          <span className={sidebarLabel}>{appShell.account}</span>
-          <strong className="block">{user?.fullName}</strong>
-          <small className="block text-[var(--main-page-inverse-text-soft)]">{user?.email}</small>
-        </div>
-
-        <nav className="flex flex-col gap-2">
-          <SideBarLink to="/dashboard" onClick={closeSidebar}>
-            {appShell.nav.dashboard}
-          </SideBarLink>
-          <SideBarLink to="/watchlist" onClick={closeSidebar}>
-            {appShell.nav.watchlist}
-          </SideBarLink>
-          <SideBarLink to="/friends" onClick={closeSidebar}>
-            {appShell.nav.friends}
-          </SideBarLink>
-          <SideBarLink to="/settings" onClick={closeSidebar}>
-            {appShell.nav.settings}
-          </SideBarLink>
-
-          {user?.role === 'admin' ? (
-            <SideBarLink to="/admin/config" onClick={closeSidebar}>
-              {admin.nav}
-            </SideBarLink>
-          ) : null}
+      <div className="grid min-h-[calc(100vh-90px)] grid-cols-[72px_minmax(0,1fr)] max-[620px]:grid-cols-1">
+        <nav className="flex flex-col gap-3 border-r border-[var(--main-page-border)] bg-[#0c1921] px-[7px] py-[14px] max-[620px]:fixed max-[620px]:inset-x-0 max-[620px]:bottom-0 max-[620px]:z-50 max-[620px]:grid max-[620px]:grid-cols-6 max-[620px]:gap-0 max-[620px]:border-r-0 max-[620px]:border-t max-[620px]:px-1 max-[620px]:py-1" aria-label="Navegación de Quill">
+          {railNav.map(([to, label, icon]) => <NavLink key={to} to={to} className={({ isActive }) => `flex flex-col items-center gap-[7px] rounded-r-md py-[11px] text-[10px] transition-colors max-[620px]:gap-1 max-[620px]:rounded-md max-[620px]:py-2 ${isActive ? 'border-l-2 border-[var(--color-accent)] bg-[#163239] text-[var(--color-accent)] max-[620px]:border-l-0' : 'text-[var(--main-page-text-soft)] hover:text-[var(--color-text)]'}`}><Icon name={icon} /><span>{label}</span></NavLink>)}
         </nav>
 
-        {/* <div className={`${surface.inverseCard} p-4 text-white`}>
-          <span className={sidebarLabel}>{appShell.focus.title}</span>
-          <ul className="m-0 grid gap-[0.55rem] pl-4 text-[var(--main-page-inverse-text-soft)]">
-            {appShell.focus.items.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </div> */}
-      </aside>
-
-      <div className="min-w-0 p-6 max-[720px]:p-4">
-        <header className="mb-5 flex items-start justify-between gap-4 max-[820px]:flex-col max-[820px]:items-stretch">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setSidebarOpen(true)}
-              className={`${button.themeToggle} hidden max-[720px]:flex`}
-              aria-label="Abrir menu de navegacion"
-            >
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M3 12h18M3 6h18M3 18h18" />
-              </svg>
-            </button>
-
-            <div>
-              <p className={eyebrow}>{appShell.header.eyebrow}</p>
-              <h1 className="m-0">{title}</h1>
-              <p className="max-w-[68ch]">{subtitle}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 max-[820px]:w-full max-[820px]:justify-between">
-            <ThemeToggle />
-            <CurrencySelector />
-            <button className={`${button.base} ${button.secondary}`} onClick={logout} type="button">
-              {labels.action.logout}
-            </button>
-          </div>
-        </header>
-
-        <div className={`${sectionGap} min-w-0`}>{children}</div>
+        <main className={`min-w-0 ${isMarket ? '' : 'p-8 max-[620px]:p-4 max-[620px]:pb-24'}`}>
+          <h1 className="sr-only">{title}</h1>
+          <p className="sr-only">{subtitle}</p>
+          {children}
+        </main>
       </div>
-
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 hidden bg-black/50 transition-opacity max-[720px]:block"
-          onClick={closeSidebar}
-        />
-      )}
+      <footer className="quill-shell-status"><span>●</span> Entorno de práctica</footer>
     </div>
   );
 }

@@ -20,11 +20,11 @@ const modeDefaults: Record<ThemeMode, ThemePalette> = {
     text: '#000000',
   },
   dark: {
-    background: '#111111',
-    primary: '#666666',
-    secondary: '#444444',
-    accent: '#cccccc',
-    text: '#ffffff',
+    background: '#0A141A',
+    primary: '#101F28',
+    secondary: '#0B1820',
+    accent: '#63C9C1',
+    text: '#E7F0F2',
   },
 };
 
@@ -37,7 +37,7 @@ export const themes = {
   },
   darkDefault: {
     mode: 'dark',
-    label: 'Dark Default',
+    label: 'Quill oscuro',
     colors: {
     },
   },

@@ -30,6 +30,11 @@ export type StockQuote = z.infer<typeof StockQuoteSchema>;
 export const PricePointSchema = z.object({
   symbol: z.string(),
   price: z.number(),
+  open: z.number().optional(),
+  high: z.number().optional(),
+  low: z.number().optional(),
+  close: z.number().optional(),
+  volume: z.number().optional(),
   createdAt: z.string().datetime(),
 });
 

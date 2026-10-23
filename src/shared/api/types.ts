@@ -54,6 +54,11 @@ export interface StockQuote {
 export interface PricePoint {
   symbol: string;
   price: number;
+  open?: number;
+  high?: number;
+  low?: number;
+  close?: number;
+  volume?: number;
   createdAt: string;
 }
 

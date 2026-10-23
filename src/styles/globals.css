@@ -1,11 +1,11 @@
 /* globals.css */
 :root {
   /* Fallback palette before Redux applies selected theme */
-  --color-background: #f0f0ff;
-  --color-primary: #6666ff;
-  --color-secondary: #8888ff;
-  --color-accent: #3333ff;
-  --color-text: #000022;
+  --color-background: #0A141A;
+  --color-primary: #101F28;
+  --color-secondary: #0B1820;
+  --color-accent: #63C9C1;
+  --color-text: #E7F0F2;
 }
 
 /* Dyslexic font */

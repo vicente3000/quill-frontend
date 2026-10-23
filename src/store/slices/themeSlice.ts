@@ -1,18 +1,17 @@
 // store/slices/themeSlice.ts
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { fallbackThemeByMode, isThemeName, resolveTheme } from '@/styles/themes';
+import { fallbackThemeByMode, resolveTheme } from '@/styles/themes';
 import type { ThemeName } from '@/styles/themes';
 
 interface ThemeState {
   currentTheme: ThemeName;
 }
 
-const storedTheme = localStorage.getItem('theme');
-const defaultTheme: ThemeName = fallbackThemeByMode.light;
+const defaultTheme: ThemeName = fallbackThemeByMode.dark;
 
 const initialState: ThemeState = {
-  currentTheme: isThemeName(storedTheme) ? storedTheme : defaultTheme,
+  currentTheme: defaultTheme,
 };
 
 export const themeSlice = createSlice({

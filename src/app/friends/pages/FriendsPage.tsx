@@ -1,23 +1,11 @@
 import { useState } from 'react';
-import { useFriends, useFriendRequests } from '../../../shared/api/hooks';
-import {
-  useSendFriendRequestMutation,
-  useRespondToFriendRequestMutation,
-  useRemoveFriendMutation,
-} from '../../../shared/api/hooks';
-import { labels, friends as friendsContent } from '../../../shared/content/strings';
+import { useFriends, useFriendRequests, useSendFriendRequestMutation, useRespondToFriendRequestMutation, useRemoveFriendMutation } from '../../../shared/api/hooks';
 import { AppShell } from '../../../shared/layout/AppShell';
-import { SectionCard } from '../../../shared/components/SectionCard';
 import { EmptyState } from '../../../shared/components/EmptyState';
-import { Button } from '../../../shared/components/Button';
-import { loadingScreen, formGrid, fieldGroup } from '../../../shared/design-system/layout';
-import { surface } from '../../../shared/design-system/surfaces';
-import { fieldLabel, textSoft } from '../../../shared/design-system/typography';
-import { table } from '../../../shared/design-system';
-import { errorMessage as errorMsgClass, inputBase } from '../../../shared/design-system/forms';
+import { loadingScreen } from '../../../shared/design-system/layout';
 import { getApiErrorMessage } from '../../../shared/api/get-api-error-message';
-import { logError } from '../../../shared/api/error-logging';
 import type { Friend, FriendRequest } from '../../../shared/api/validators';
+import '../../dashboard/DashboardPage.css';
 
 export function FriendsPage() {
   const { data: friends, isLoading: friendsLoading } = useFriends();
@@ -25,176 +13,48 @@ export function FriendsPage() {
   const sendRequestMutation = useSendFriendRequestMutation();
   const respondMutation = useRespondToFriendRequestMutation();
   const removeMutation = useRemoveFriendMutation();
-
   const [userIdInput, setUserIdInput] = useState('');
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const [searchSuccess, setSearchSuccess] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'friends' | 'requests'>('friends');
+  const [removeTarget, setRemoveTarget] = useState<Friend | null>(null);
 
   const friendsList = (friends ?? []) as Friend[];
   const requestsList = (friendRequests ?? []) as FriendRequest[];
 
+  if (friendsLoading || requestsLoading) {
+    return <AppShell title="Amigos" subtitle="Gestiona tus amigos."><div className={loadingScreen}>Cargando amigos...</div></AppShell>;
+  }
+
   const handleSendRequest = async () => {
     if (!userIdInput.trim()) return;
     try {
-      setSearchError(null);
-      setSearchSuccess(null);
       await sendRequestMutation.mutateAsync(userIdInput.trim());
-      setSearchSuccess(friendsContent.search.success);
+      setFeedback('Solicitud enviada correctamente.');
       setUserIdInput('');
     } catch (error) {
-      setSearchError(
-        getApiErrorMessage(error, friendsContent.search.error),
-      );
+      setFeedback(getApiErrorMessage(error, 'No se pudo enviar la solicitud.'));
     }
   };
 
-  const handleAccept = async (userId: string) => {
-    try {
-      await respondMutation.mutateAsync({ userId, data: { status: 'accepted' } });
-    } catch (error) {
-      logError('[FriendsPage] Accept failed:', error);
-    }
+  const confirmRemove = async () => {
+    if (!removeTarget) return;
+    await removeMutation.mutateAsync(removeTarget._id);
+    setFeedback(`${removeTarget.fullName} se eliminó de tus amigos.`);
+    setRemoveTarget(null);
   };
-
-  const handleRemove = async (userId: string) => {
-    try {
-      await removeMutation.mutateAsync(userId);
-    } catch (error) {
-      logError('[FriendsPage] Remove failed:', error);
-    }
-  };
-
-  if (friendsLoading || requestsLoading) {
-    return (
-      <AppShell title={friendsContent.title} subtitle={friendsContent.subtitleShort}>
-        <div className={loadingScreen}>{friendsContent.loading}</div>
-      </AppShell>
-    );
-  }
 
   return (
-    <AppShell
-      title={friendsContent.title}
-      subtitle={friendsContent.subtitle}
-    >
-      <SectionCard
-        title={friendsContent.search.title}
-        description={friendsContent.search.description}
-      >
-        <div className={formGrid}>
-          {searchError ? <p className={errorMsgClass}>{searchError}</p> : null}
-          {searchSuccess ? <p className="rounded-[var(--main-page-radius-md)] px-4 py-3.5 text-[var(--main-page-accent-strong)] bg-[var(--main-page-accent-soft)] border border-[color-mix(in_srgb,_var(--color-accent)_22%,_transparent)]">{searchSuccess}</p> : null}
-          <div className="flex gap-3 items-end max-[720px]:flex-col">
-            <label className={fieldGroup + ' flex-1'}>
-              <span className={fieldLabel}>{labels.field.userId}</span>
-              <input
-                className={inputBase}
-                type="text"
-                placeholder={labels.field.usernamePlaceholder}
-                value={userIdInput}
-                onChange={(e) => setUserIdInput(e.target.value)}
-              />
-            </label>
-            <Button
-              onClick={handleSendRequest}
-              disabled={sendRequestMutation.isPending || !userIdInput.trim()}
-            >
-              {sendRequestMutation.isPending ? labels.action.sending : labels.action.send}
-            </Button>
-          </div>
-        </div>
-      </SectionCard>
-
-      {requestsList.length > 0 ? (
-        <SectionCard
-          title={friendsContent.requests.title}
-          description={friendsContent.requests.count(requestsList.length)}
-        >
-          <div className={`${surface.tableWrapper} responsive-table`}>
-            <table className="w-full min-w-[500px] border-separate border-spacing-0">
-              <thead>
-                <tr>
-                  <th className={table.header}>{labels.table.name}</th>
-                  <th className={table.header}>{labels.table.user}</th>
-                  <th className={table.header}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {requestsList.map((req) => (
-                  <tr key={req._id} className={table.rowBorder}>
-                    <td className={table.cell} data-label={labels.table.name}>
-                      {req.from.fullName}
-                    </td>
-                    <td className={`${table.cell} ${textSoft}`} data-label={labels.table.user}>
-                      {req.from.username ?? '—'}
-                    </td>
-                    <td className={table.cell} data-label="">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => handleAccept(req.from._id)}
-                        disabled={respondMutation.isPending}
-                      >
-                        {labels.action.accept}
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </SectionCard>
-      ) : null}
-
-      <SectionCard
-        title={friendsContent.list.title}
-        description={friendsList.length === 0 ? friendsContent.list.empty : friendsContent.list.count(friendsList.length)}
-      >
-        {friendsList.length === 0 ? (
-          <EmptyState
-            title={friendsContent.list.emptyTitle}
-            description={friendsContent.list.emptyDescription}
-          />
-        ) : (
-          <div className={`${surface.tableWrapper} responsive-table`}>
-            <table className="w-full min-w-[500px] border-separate border-spacing-0">
-              <thead>
-                <tr>
-                  <th className={table.header}>{labels.table.name}</th>
-                  <th className={table.header}>{labels.table.email}</th>
-                  <th className={table.header}>{labels.table.user}</th>
-                  <th className={table.header}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {friendsList.map((friend) => (
-                  <tr key={friend._id} className={table.rowBorder}>
-                    <td className={table.cell} data-label={labels.table.name}>
-                      {friend.fullName}
-                    </td>
-                    <td className={`${table.cell} ${textSoft}`} data-label={labels.table.email}>
-                      {friend.email}
-                    </td>
-                    <td className={`${table.cell} ${textSoft}`} data-label={labels.table.user}>
-                      {friend.username ?? '—'}
-                    </td>
-                    <td className={table.cell} data-label="">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemove(friend._id)}
-                        disabled={removeMutation.isPending}
-                      >
-                        {labels.action.delete}
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </SectionCard>
+    <AppShell title="Amigos" subtitle="Conecta con las personas que comparten tu interés por invertir.">
+      <section className="quill-friends-page">
+        <span className="quill-eyebrow">Tu comunidad</span>
+        <header className="quill-page-header"><div><h2>Amigos</h2><p>Conecta con las personas que comparten tu interés por invertir.</p></div><button type="button" className="quill-primary-action" onClick={() => document.getElementById('friend-search')?.focus()}>+ Agregar amigo</button></header>
+        <section className="quill-friend-search"><label htmlFor="friend-search">Buscar por nombre de usuario</label><div><input id="friend-search" value={userIdInput} onChange={(event) => setUserIdInput(event.target.value)} placeholder="Ej.: camila.rojas" /><button type="button" onClick={() => void handleSendRequest()} disabled={!userIdInput.trim() || sendRequestMutation.isPending}>Buscar</button></div></section>
+        <div className="quill-page-tabs" role="tablist" aria-label="Amigos y solicitudes"><button type="button" role="tab" aria-selected={activeTab === 'friends'} onClick={() => setActiveTab('friends')}>Mis amigos {friendsList.length}</button><button type="button" role="tab" aria-selected={activeTab === 'requests'} onClick={() => setActiveTab('requests')}>Solicitudes {requestsList.length}</button></div>
+        {activeTab === 'friends' ? (friendsList.length ? <div className="quill-friend-grid">{friendsList.map((friend) => <article key={friend._id} className="quill-friend-card"><div className="quill-friend-person"><span>{friend.fullName.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase()}</span><div><strong>{friend.fullName}</strong><small>@{friend.username ?? friend.email.split('@')[0]}</small></div></div><p>En tu lista de amigos</p><footer><button type="button" onClick={() => setRemoveTarget(friend)}>Eliminar amigo</button></footer></article>)}</div> : <EmptyState title="Sin amigos" description="Envía solicitudes a otros usuarios para empezar." />) : (requestsList.length ? <div className="quill-friend-grid">{requestsList.map((request) => <article key={request._id} className="quill-friend-card"><div className="quill-friend-person"><span>{request.from.fullName.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase()}</span><div><strong>{request.from.fullName}</strong><small>@{request.from.username ?? request.from.email.split('@')[0]}</small></div></div><p>Quiere agregarte a sus amigos</p><footer><button type="button" onClick={() => void respondMutation.mutateAsync({ userId: request.from._id, data: { status: 'accepted' } })}>Aceptar solicitud</button></footer></article>)}</div> : <EmptyState title="Sin solicitudes" description="No tienes solicitudes pendientes." />)}
+        {removeTarget ? <section className="quill-unfriend"><p>¿Eliminar a {removeTarget.fullName} de tus amigos?</p><div><button type="button" onClick={() => void confirmRemove()} disabled={removeMutation.isPending}>Eliminar amigo</button><button type="button" onClick={() => setRemoveTarget(null)}>Conservar</button></div></section> : null}
+        {feedback ? <p className="quill-feedback">{feedback}</p> : null}
+        <p className="quill-page-note">Agregar a alguien no comparte tu saldo ni realiza operaciones en tu cuenta.</p>
+      </section>
     </AppShell>
   );
 }

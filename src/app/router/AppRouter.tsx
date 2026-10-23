@@ -75,6 +75,18 @@ export function AppRouter() {
           element: <ProtectedRoute element={<DashboardPage />} />,
         },
         {
+          path: '/market',
+          element: <ProtectedRoute element={<DashboardPage />} />,
+        },
+        {
+          path: '/portfolio',
+          element: <ProtectedRoute element={<DashboardPage />} />,
+        },
+        {
+          path: '/activity',
+          element: <ProtectedRoute element={<DashboardPage />} />,
+        },
+        {
           path: '/settings',
           element: <ProtectedRoute element={<SettingsPage />} />,
         },

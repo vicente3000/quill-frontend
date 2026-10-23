@@ -10,7 +10,7 @@ import { AdminStockCreateModal } from '../components/AdminStockCreateModal';
 import { AdminStockPriceModal } from '../components/AdminStockPriceModal';
 import type { AdminStock } from '../../../shared/api/validators';
 
-const SOURCES = ['all', 'admin', 'mock', 'eodhd'] as const;
+const SOURCES = ['all', 'admin', 'mock', 'eodhd', 'yahoo'] as const;
 
 export function AdminStocksPage() {
   const [search, setSearch] = useState('');

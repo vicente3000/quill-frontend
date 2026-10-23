@@ -15,6 +15,7 @@ interface MarketTableProps {
   rate: number;
   watchlist?: string[];
   onToggleWatchlist?: (symbol: string) => void;
+  compact?: boolean;
 }
 
 const movementColor: Record<string, string> = {
@@ -32,6 +33,7 @@ export function MarketTable({
   rate,
   watchlist,
   onToggleWatchlist,
+  compact = false,
 }: MarketTableProps) {
   const [search, setSearch] = useState('');
   const displayQuotes = useMemo(
@@ -48,6 +50,25 @@ export function MarketTable({
   );
 
   const marketTableText1 = "p-[0.5rem_0.6rem] text-left text-[0.78rem] font-semibold text-[var(--main-page-text-soft)] bg-[color-mix(in_srgb,var(--color-text)_2.5%,_transparent)]";
+  if (compact) {
+    return (
+      <div className="terminal-market-list">
+        <input placeholder="Buscar activo…" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Buscar activo" />
+        <div className="terminal-market-list-head"><span>Activo</span><span>Precio</span></div>
+        {displayQuotes.map((quote) => {
+          const isSelected = quote.symbol === selectedSymbol;
+          const isWatched = watchlist?.includes(quote.symbol) ?? false;
+          return (
+            <div key={quote.symbol} className={`terminal-market-row ${isSelected ? 'is-selected' : ''}`}>
+              <button type="button" className="terminal-star" onClick={() => onToggleWatchlist?.(quote.symbol)} aria-label={isWatched ? `Quitar ${quote.symbol} de favoritos` : `Agregar ${quote.symbol} a favoritos`}>{isWatched ? '★' : '☆'}</button>
+              <button type="button" className="terminal-market-asset" onClick={() => onSelect(quote.symbol)}><strong>{quote.symbol}</strong><small>{quote.name}</small></button>
+              <button type="button" className="terminal-market-price" onClick={() => onSelect(quote.symbol)}><strong className={movementColor[movementBySymbol[quote.symbol] ?? 'steady']}><AnimatedCurrency value={quote.close} currency={currency} sourceCurrency={quote.currency} rate={rate} /></strong><small className={quote.dayChangePercentage >= 0 ? textPositive : textNegative}>{formatPercentage(quote.dayChangePercentage)}</small></button>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
   return (
     <div className={`${surface.tableWrapper} max-h-[13.5rem] responsive-table`}>
       <div className="sticky top-0 z-10 border-b border-[var(--main-page-border)] bg-[var(--main-page-surface-strong)]">

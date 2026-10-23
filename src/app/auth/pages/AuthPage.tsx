@@ -6,7 +6,6 @@ import { z } from 'zod';
 import { getApiErrorMessage } from '../../../shared/api/get-api-error-message';
 import { labels, auth } from '../../../shared/content/strings';
 import { PasswordField } from '../../../shared/components/PasswordField';
-import { ThemeToggle } from '../../../shared/components/ThemeToggle';
 import { useAuth } from '../hooks/use-auth';
 import { button, surface, gradient } from '../../../shared/design-system/surfaces';
 import { fieldLabel, fieldError, textSoft } from '../../../shared/design-system/typography';
@@ -254,9 +253,6 @@ export function AuthPage() {
           {auth.footer}
         </p>
 
-        <div className="mt-5 pt-4 border-t border-[var(--main-page-border)]">
-          <ThemeToggle />
-        </div>
       </section>
     </main>
   );

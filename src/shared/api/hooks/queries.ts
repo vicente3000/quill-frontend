@@ -202,7 +202,8 @@ export function useStockHistory(symbol: string, limit: number = 24) {
   const query = useQuery({
     queryKey: ['market', 'history', symbol, limit],
     queryFn: () => marketService.getStockHistory(symbol, limit),
-    staleTime: 5000, // 5 seconds (more frequent updates for chart data)
+    staleTime: 1000,
+    refetchInterval: 1000,
     retry: 1,
     enabled: Boolean(symbol), // Only fetch if symbol is provided
   });

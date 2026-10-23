@@ -433,6 +433,7 @@ export const admin = {
       admin: 'Admin',
       mock: 'Simulación',
       eodhd: 'Proveedor',
+      yahoo: 'Yahoo Finance',
     },
     empty: 'No hay acciones disponibles.',
     createTitle: 'Crear nueva acción',

@@ -29,9 +29,11 @@ interface OrderFormProps {
   selectedSymbol: string;
   marketOpen?: boolean;
   onSymbolChange?: (symbol: string) => void;
+  compact?: boolean;
+  availableBalance?: number;
 }
 
-export function OrderForm({ quotes, rate, selectedSymbol, marketOpen, onSymbolChange }: OrderFormProps) {
+export function OrderForm({ quotes, rate, selectedSymbol, marketOpen, onSymbolChange, compact = false, availableBalance }: OrderFormProps) {
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [buyMode, setBuyMode] = useState<'shares' | 'amount'>('shares');
   const [investAmount, setInvestAmount] = useState<string>('');
@@ -226,6 +228,56 @@ export function OrderForm({ quotes, rate, selectedSymbol, marketOpen, onSymbolCh
       </p>
     );
   })();
+
+  if (compact) {
+    const previewPrice = orderType === 'MARKET' ? (currentQuote?.close ?? 0) : (watchedLimitPrice ?? currentQuote?.close ?? 0);
+    const previewGross = buyMode === 'shares' ? Math.max(0, watchedQuantity ?? 0) * previewPrice : Math.max(0, investAmountValue);
+    const previewGrossClp = buyMode === 'amount' || priceCurrency === 'CLP' ? previewGross : previewGross * rate;
+    const previewCommissionClp = previewGrossClp * 0.005;
+    const previewNetClp = selectedSide === 'BUY' ? previewGrossClp + previewCommissionClp : previewGrossClp - previewCommissionClp;
+    const projectedBalance = availableBalance === undefined ? undefined : selectedSide === 'BUY' ? availableBalance - previewNetClp : availableBalance + previewNetClp;
+
+    return (
+      <form className="terminal-order-form" onSubmit={(event) => { void form.handleSubmit(handleSubmit)(event); }}>
+        <div className="terminal-side-switch" aria-label="Tipo de operación">
+          <button type="button" aria-pressed={selectedSide === 'BUY'} onClick={() => form.setValue('side', 'BUY')} disabled={demoMode}>Comprar</button>
+          <button type="button" aria-pressed={selectedSide === 'SELL'} onClick={() => form.setValue('side', 'SELL')} disabled={demoMode}>Vender</button>
+        </div>
+        <div className="terminal-order-types" aria-label="Modalidad de orden">
+          <button type="button" aria-pressed={orderType === 'LIMIT'} onClick={() => form.setValue('type', 'LIMIT')}>Límite</button>
+          <button type="button" aria-pressed={orderType === 'MARKET'} disabled={marketOpen !== true} onClick={() => form.setValue('type', 'MARKET')}>Mercado</button>
+        </div>
+        <div className="terminal-order-kind">Orden {orderType === 'LIMIT' ? 'limitada' : 'de mercado'} · {currentQuote?.symbol}</div>
+        {orderType === 'LIMIT' ? <label>Precio límite · {priceCurrency}
+          <input type="number" step="0.01" disabled={demoMode} onChange={(event) => { limitPriceUserTouched.current = true; void limitPriceOnChange(event); }} {...limitPriceRest} />
+        </label> : <div className="terminal-market-price-preview"><span>Precio referencial</span><strong><AnimatedCurrency value={previewPrice} currency={priceCurrency} sourceCurrency={priceCurrency} rate={rate} /></strong></div>}
+        <div className="terminal-mode-switch">
+          <button type="button" aria-pressed={buyMode === 'shares'} onClick={() => handleModeToggle('shares')} disabled={demoMode}>Cantidad</button>
+          <button type="button" aria-pressed={buyMode === 'amount'} onClick={() => handleModeToggle('amount')} disabled={demoMode}>Monto CLP</button>
+        </div>
+        {buyMode === 'shares' ? (
+          <label>Cantidad de acciones
+            <input type="number" min="1" disabled={demoMode} {...form.register('quantity', { valueAsNumber: true })} />
+          </label>
+        ) : (
+          <label>{selectedSide === 'BUY' ? 'Monto a invertir' : 'Monto a recibir'} · CLP
+            <input type="number" min="0" disabled={demoMode} value={investAmount} onChange={(event) => setInvestAmount(event.target.value)} />
+          </label>
+        )}
+        <div className="terminal-balance"><span>Disponible</span><span>{availableBalance === undefined ? '—' : <AnimatedCurrency value={availableBalance} rate={rate} />}</span></div>
+        <div className="terminal-order-summary">
+          <div><span>Subtotal</span><strong><AnimatedCurrency value={previewGrossClp} sourceCurrency="CLP" rate={rate} /></strong></div>
+          <div><span>Comisión estimada · 0,5%</span><strong><AnimatedCurrency value={previewCommissionClp} sourceCurrency="CLP" rate={rate} /></strong></div>
+          <div className="terminal-total"><span>{selectedSide === 'BUY' ? 'Total a pagar' : 'Total a recibir'}</span><strong><AnimatedCurrency value={previewNetClp} sourceCurrency="CLP" rate={rate} /></strong></div>
+          {projectedBalance !== undefined ? <div><span>Saldo posterior</span><strong className={projectedBalance < 0 ? 'text-[#EF4557]' : ''}><AnimatedCurrency value={projectedBalance} sourceCurrency="CLP" rate={rate} /></strong></div> : null}
+        </div>
+        {marketOpen === false ? <p className="terminal-hint">Mercado cerrado: la orden quedará pendiente.</p> : null}
+        {feedbackMessage ? <p className={feedbackMessage.includes('cerrado') ? errorMessage : successMessage}>{feedbackMessage}</p> : null}
+        <button className="terminal-submit" disabled={orderMutation.isPending || demoMode} type="submit">{demoMode ? 'Revisar orden' : orderMutation.isPending ? 'Creando…' : selectedSide === 'BUY' ? 'Revisar compra' : 'Revisar venta'}</button>
+        <p className="terminal-hint">{orderType === 'LIMIT' ? 'Se ejecutará al alcanzar el precio límite.' : 'Se ejecutará de inmediato al precio disponible.'}</p>
+      </form>
+    );
+  }
 
   return (
     <form
