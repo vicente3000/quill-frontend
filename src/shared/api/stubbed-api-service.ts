@@ -31,6 +31,9 @@ import {
   AdminStockListResponseSchema,
   type CreateStockInput,
   type UpdateStockPriceInput,
+  ContestSchema,
+  ContestListSchema,
+  type CreateContestInput,
 } from './validators';
 import {
   STUB_AUTH_RESPONSE,
@@ -48,6 +51,7 @@ import {
   buildStubHistory,
   STUB_ADMIN_CONFIG_HISTORY,
   STUB_ADMIN_STOCKS,
+  STUB_ADMIN_CONTESTS,
 } from './stub-data';
 
 const NETWORK_LATENCY_MS = 250;
@@ -362,5 +366,52 @@ export const adminStockService = {
       throw new Error(`No se puede eliminar un stock administrado por el proveedor.`);
     }
     return MessageResponseSchema.parse({ message: `Stock "${symbol}" eliminado.` });
+  },
+};
+
+function resolveStubContestStatus(startDate: string, endDate: string) {
+  const now = Date.now();
+  if (now < new Date(startDate).getTime()) return 'UPCOMING';
+  if (now > new Date(endDate).getTime()) return 'FINISHED';
+  return 'ACTIVE';
+}
+
+export const adminContestService = {
+  list: async () => {
+    await delay(NETWORK_LATENCY_MS);
+    const sorted = [...STUB_ADMIN_CONTESTS].sort(
+      (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
+    );
+    return ContestListSchema.parse(sorted);
+  },
+
+  getById: async (id: string) => {
+    await delay(NETWORK_LATENCY_MS);
+    const contest = STUB_ADMIN_CONTESTS.find((c) => c.id === id);
+    if (!contest) {
+      throw new Error('Concurso no encontrado.');
+    }
+    return ContestSchema.parse(contest);
+  },
+
+  create: async (data: CreateContestInput) => {
+    await delay(NETWORK_LATENCY_MS);
+    const now = new Date().toISOString();
+    const contest = ContestSchema.parse({
+      id: `stub-contest-${STUB_ADMIN_CONTESTS.length + 1}-${Date.now()}`,
+      name: data.name,
+      description: data.description ?? null,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      initialBalance: data.initialBalance,
+      mode: data.mode,
+      allowedAccountTypes: data.allowedAccountTypes,
+      status: resolveStubContestStatus(data.startDate, data.endDate),
+      createdBy: 'stub-admin',
+      createdAt: now,
+      updatedAt: now,
+    });
+    STUB_ADMIN_CONTESTS.unshift(contest);
+    return contest;
   },
 };

@@ -29,6 +29,9 @@ const AdminSnapshotsPage = lazy(() =>
 const AdminStocksPage = lazy(() =>
   import('../admin/pages/AdminStocksPage').then((module) => ({ default: module.AdminStocksPage })),
 );
+const AdminContestsPage = lazy(() =>
+  import('../admin/pages/AdminContestsPage').then((module) => ({ default: module.AdminContestsPage })),
+);
 const NotFound = lazy(() => import('../not-found/NotFound'));
 
 function ProtectedRoute({ element }: { element: React.ReactNode }) {
@@ -93,6 +96,7 @@ export function AppRouter() {
             { path: 'config', element: <AdminConfigPage /> },
             { path: 'snapshots', element: <AdminSnapshotsPage /> },
             { path: 'stocks', element: <AdminStocksPage /> },
+            { path: 'contests', element: <AdminContestsPage /> },
           ],
         },
         { path: '/', element: <Navigate to="/auth" replace /> },

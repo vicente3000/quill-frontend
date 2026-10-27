@@ -4,10 +4,11 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { authService, ordersService, usersService, adminConfigService, adminStockService } from '../api-service';
-import type { UpdateConfigInput, CreateSnapshotInput, CreateStockInput, UpdateStockPriceInput } from '../validators';
+import { authService, ordersService, usersService, adminConfigService, adminStockService, adminContestService } from '../api-service';
+import type { UpdateConfigInput, CreateSnapshotInput, CreateStockInput, UpdateStockPriceInput, CreateContestInput } from '../validators';
 import { logError } from '../error-logging';
 import { showToast } from '../../components/toast-service';
+import { admin } from '../../content/strings';
 
 /**
  * Hook for user login mutation
@@ -313,6 +314,25 @@ export function useDeleteAdminStock() {
     },
     onError: (error) => {
       logError('[Mutation] Admin stock delete failed:', error);
+    },
+  });
+}
+
+
+/**
+ * Hook for creating a new contest (admin)
+ */
+export function useCreateAdminContest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateContestInput) => adminContestService.create(data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'contests'] });
+      showToast(admin.contests.saved);
+    },
+    onError: (error) => {
+      logError('[Mutation] Admin contest create failed:', error);
     },
   });
 }

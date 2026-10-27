@@ -33,6 +33,9 @@ import {
   AdminStockListResponseSchema,
   type CreateStockInput,
   type UpdateStockPriceInput,
+  ContestSchema,
+  ContestListSchema,
+  type CreateContestInput,
 } from './validators';
 
 export const authService = {
@@ -427,6 +430,39 @@ export const adminStockService = {
       return MessageResponseSchema.parse(response.data);
     } catch (error) {
       logError(`[API] Admin stock delete failed: ${symbol}`, error);
+      throw error;
+    }
+  },
+};
+
+
+export const adminContestService = {
+  list: async () => {
+    try {
+      const response = await apiClient.get('/admin/contests');
+      return ContestListSchema.parse(response.data);
+    } catch (error) {
+      logError('[API] Admin contests fetch failed:', error);
+      throw error;
+    }
+  },
+
+  getById: async (id: string) => {
+    try {
+      const response = await apiClient.get(`/admin/contests/${id}`);
+      return ContestSchema.parse(response.data);
+    } catch (error) {
+      logError(`[API] Admin contest fetch failed: ${id}`, error);
+      throw error;
+    }
+  },
+
+  create: async (data: CreateContestInput) => {
+    try {
+      const response = await apiClient.post('/admin/contests', data);
+      return ContestSchema.parse(response.data);
+    } catch (error) {
+      logError('[API] Admin contest create failed:', error);
       throw error;
     }
   },
