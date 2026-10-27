@@ -1,4 +1,4 @@
-import type { AuthResponse, UserProfile } from './validators'
+import { AuthResponseSchema, type AuthResponseInput, type UserProfile } from './validators'
 
 export const AUTH_STORAGE_KEY = 'quill_auth'
 export const UNAUTHORIZED_EVENT = 'quill:unauthorized'
@@ -25,8 +25,9 @@ export function getAuthToken() {
   return getAuthSession()?.token ?? null
 }
 
-export function setAuthSession(response: AuthResponse) {
+export function setAuthSession(input: AuthResponseInput) {
   removeLegacyStoredSession()
+  const response = AuthResponseSchema.parse(input)
   activeSession = {
     token: response.accessToken,
     user: response.user,

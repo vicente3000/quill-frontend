@@ -5,6 +5,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { store } from '../../store/store';
 import { AuthProvider } from '../auth/hooks/use-auth';
 import { ToastContainer } from '../../shared/components/Toast';
+import { TournamentModeProvider } from '../tournaments/context/TournamentModeContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,8 +21,10 @@ export function AppProviders({ children }: PropsWithChildren) {
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          {children}
-          <ToastContainer />
+          <TournamentModeProvider>
+            {children}
+            <ToastContainer />
+          </TournamentModeProvider>
         </AuthProvider>
       </QueryClientProvider>
     </Provider>

@@ -33,6 +33,18 @@ import {
   AdminStockListResponseSchema,
   type CreateStockInput,
   type UpdateStockPriceInput,
+  TournamentSchema,
+  TournamentListResponseSchema,
+  TournamentCreateResponseSchema,
+  TournamentParticipantSchema,
+  TournamentPortfolioSchema,
+  TournamentOrderSchema,
+  TournamentTradeSchema,
+  LeaderboardResponseSchema,
+  type TournamentListParams,
+  type LeaderboardParams,
+  type CreateTournamentInput,
+  type UpdateTournamentInput,
 } from './validators';
 
 export const authService = {
@@ -429,5 +441,112 @@ export const adminStockService = {
       logError(`[API] Admin stock delete failed: ${symbol}`, error);
       throw error;
     }
+  },
+};
+
+export const tournamentService = {
+  list: async (params?: TournamentListParams) => {
+    const response = await apiClient.get('/tournaments', { params });
+    return TournamentListResponseSchema.parse(response.data);
+  },
+
+  get: async (id: string) => {
+    const response = await apiClient.get(`/tournaments/${id}`);
+    return TournamentSchema.parse(response.data);
+  },
+
+  create: async (data: CreateTournamentInput) => {
+    const response = await apiClient.post('/tournaments', data);
+    return TournamentCreateResponseSchema.parse(response.data);
+  },
+
+  update: async ({ id, data }: { id: string; data: UpdateTournamentInput }) => {
+    const response = await apiClient.patch(`/tournaments/${id}`, data);
+    return TournamentSchema.parse(response.data);
+  },
+
+  publish: async (id: string) => {
+    const response = await apiClient.post(`/tournaments/${id}/publish`);
+    return TournamentSchema.parse(response.data);
+  },
+
+  start: async (id: string) => {
+    const response = await apiClient.post(`/tournaments/${id}/start`);
+    return TournamentSchema.parse(response.data);
+  },
+
+  finish: async (id: string) => {
+    const response = await apiClient.post(`/tournaments/${id}/finish`);
+    return TournamentSchema.parse(response.data);
+  },
+
+  cancel: async (id: string) => {
+    const response = await apiClient.post(`/tournaments/${id}/cancel`);
+    return TournamentSchema.parse(response.data);
+  },
+
+  join: async ({ id, joinCode }: { id: string; joinCode?: string }) => {
+    const response = await apiClient.post(`/tournaments/${id}/join`, { joinCode });
+    return TournamentParticipantSchema.parse(response.data);
+  },
+
+  rotateJoinCode: async (id: string) => {
+    const response = await apiClient.post(`/tournaments/${id}/join-code/rotate`);
+    return response.data as { joinCode: string };
+  },
+
+  getParticipants: async (id: string) => {
+    const response = await apiClient.get(`/tournaments/${id}/participants`);
+    return TournamentParticipantSchema.array().parse(response.data);
+  },
+
+  removeParticipant: async ({ id, userId }: { id: string; userId: string }) => {
+    const response = await apiClient.delete(`/tournaments/${id}/participants/${userId}`);
+    return MessageResponseSchema.parse(response.data);
+  },
+
+  getPortfolio: async (id: string) => {
+    const response = await apiClient.get(`/tournaments/${id}/portfolio`);
+    return TournamentPortfolioSchema.parse(response.data);
+  },
+
+  createOrder: async ({ id, order }: { id: string; order: CreateOrderInput }) => {
+    const response = await apiClient.post(`/tournaments/${id}/orders`, order);
+    return TournamentOrderSchema.parse(response.data);
+  },
+
+  getOrders: async (id: string, status?: string) => {
+    const response = await apiClient.get(`/tournaments/${id}/orders`, { params: { status } });
+    return TournamentOrderSchema.array().parse(response.data);
+  },
+
+  cancelOrder: async ({ id, orderId }: { id: string; orderId: string }) => {
+    const response = await apiClient.patch(`/tournaments/${id}/orders/${orderId}/cancel`);
+    return TournamentOrderSchema.parse(response.data);
+  },
+
+  getTrades: async (id: string, limit = 50) => {
+    const response = await apiClient.get(`/tournaments/${id}/trades`, { params: { limit } });
+    return TournamentTradeSchema.array().parse(response.data);
+  },
+
+  getLeaderboard: async (id: string, params?: LeaderboardParams) => {
+    const response = await apiClient.get(`/tournaments/${id}/leaderboard`, { params });
+    return LeaderboardResponseSchema.parse(response.data);
+  },
+
+  getManagedPortfolio: async (id: string, userId: string) => {
+    const response = await apiClient.get(`/tournaments/${id}/participants/${userId}/portfolio`);
+    return TournamentPortfolioSchema.parse(response.data);
+  },
+
+  getManagedOrders: async (id: string, userId: string) => {
+    const response = await apiClient.get(`/tournaments/${id}/participants/${userId}/orders`);
+    return TournamentOrderSchema.array().parse(response.data);
+  },
+
+  getManagedTrades: async (id: string, userId: string, limit = 50) => {
+    const response = await apiClient.get(`/tournaments/${id}/participants/${userId}/trades`, { params: { limit } });
+    return TournamentTradeSchema.array().parse(response.data);
   },
 };

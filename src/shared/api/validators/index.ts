@@ -11,3 +11,4 @@ export * from './trades';
 export * from './currency';
 export * from './admin';
 export * from './stocks';
+export * from './tournaments';

@@ -5,7 +5,8 @@
 
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { portfolioService, marketService, ordersService, tradesService, usersService, currencyService, adminConfigService, adminStockService } from '../api-service';
+import { portfolioService, marketService, ordersService, tradesService, usersService, currencyService, adminConfigService, adminStockService, tournamentService } from '../api-service';
+import type { LeaderboardParams, TournamentListParams } from '../validators';
 import { logError } from '../error-logging';
 
 /**
@@ -256,6 +257,102 @@ export function useForexRate(symbol: string) {
   }, [query.error, symbol]);
 
   return query;
+}
+
+export function useTournaments(params: TournamentListParams) {
+  return useQuery({
+    queryKey: ['tournaments', 'list', params],
+    queryFn: () => tournamentService.list(params),
+    staleTime: 15000,
+    retry: 1,
+  });
+}
+
+export function useTournament(id: string) {
+  return useQuery({
+    queryKey: ['tournaments', id],
+    queryFn: () => tournamentService.get(id),
+    enabled: Boolean(id),
+    staleTime: 15000,
+    retry: 1,
+  });
+}
+
+export function useTournamentPortfolio(id: string, enabled = true) {
+  return useQuery({
+    queryKey: ['tournaments', id, 'portfolio'],
+    queryFn: () => tournamentService.getPortfolio(id),
+    enabled: Boolean(id) && enabled,
+    staleTime: 10000,
+    retry: false,
+  });
+}
+
+export function useTournamentOrders(id: string, enabled = true) {
+  return useQuery({
+    queryKey: ['tournaments', id, 'orders'],
+    queryFn: () => tournamentService.getOrders(id),
+    enabled: Boolean(id) && enabled,
+    staleTime: 10000,
+    retry: false,
+  });
+}
+
+export function useTournamentTrades(id: string, limit = 50, enabled = true) {
+  return useQuery({
+    queryKey: ['tournaments', id, 'trades', limit],
+    queryFn: () => tournamentService.getTrades(id, limit),
+    enabled: Boolean(id) && enabled,
+    staleTime: 10000,
+    retry: false,
+  });
+}
+
+export function useTournamentLeaderboard(id: string, params: LeaderboardParams = {}) {
+  return useQuery({
+    queryKey: ['tournaments', id, 'leaderboard', params],
+    queryFn: () => tournamentService.getLeaderboard(id, params),
+    enabled: Boolean(id),
+    staleTime: 10000,
+    retry: 1,
+  });
+}
+
+export function useTournamentParticipants(id: string, enabled = true) {
+  return useQuery({
+    queryKey: ['tournaments', id, 'participants'],
+    queryFn: () => tournamentService.getParticipants(id),
+    enabled: Boolean(id) && enabled,
+    staleTime: 10000,
+    retry: 1,
+  });
+}
+
+export function useManagedTournamentPortfolio(id: string, userId: string) {
+  return useQuery({
+    queryKey: ['tournaments', id, 'participants', userId, 'portfolio'],
+    queryFn: () => tournamentService.getManagedPortfolio(id, userId),
+    enabled: Boolean(id && userId),
+    staleTime: 10000,
+  });
+}
+
+export function useManagedTournamentOrders(id: string, userId: string) {
+  return useQuery({
+    queryKey: ['tournaments', id, 'participants', userId, 'orders'],
+    queryFn: () => tournamentService.getManagedOrders(id, userId),
+    enabled: Boolean(id && userId),
+    staleTime: 10000,
+  });
+}
+
+export function useManagedTournamentTrades(id: string, userId: string) {
+  return useQuery({
+    queryKey: ['tournaments', id, 'participants', userId, 'trades'],
+    queryFn: () => tournamentService.getManagedTrades(id, userId),
+    enabled: Boolean(id && userId),
+    staleTime: 10000,
+  });
 }
 
 /**

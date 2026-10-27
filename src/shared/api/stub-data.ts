@@ -7,6 +7,7 @@ import type {
   StockQuote,
   TradeRecord,
   UserRole,
+  AccountType,
 } from './validators';
 
 export const STUB_AUTH_RESPONSE: AuthResponse = {
@@ -16,6 +17,7 @@ export const STUB_AUTH_RESPONSE: AuthResponse = {
     fullName: 'Demo Quill',
     email: 'demo@quill.cl',
     role: 'investor',
+    accountType: 'external',
     username: 'demo_quill',
     watchlist: ['AAPL', 'TSLA'],
     availableBalance: 2_000_000,
@@ -28,6 +30,7 @@ export const STUB_USER_PROFILE: {
   fullName: string;
   email: string;
   role: UserRole;
+  accountType: AccountType;
   username: string;
   watchlist: string[];
   availableBalance: number;
@@ -37,6 +40,7 @@ export const STUB_USER_PROFILE: {
   fullName: 'Demo Quill',
   email: 'demo@quill.cl',
   role: 'investor',
+  accountType: 'external',
   username: 'demo_quill',
   watchlist: ['AAPL', 'TSLA'],
   availableBalance: 2_000_000,

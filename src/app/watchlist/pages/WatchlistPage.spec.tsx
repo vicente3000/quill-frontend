@@ -2,6 +2,7 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../test/render';
+import { TournamentModeProvider } from '../../tournaments/context/TournamentModeContext';
 import { WatchlistPage } from './WatchlistPage';
 
 const { marketRefetchMock, watchlistRefetchMock } = vi.hoisted(() => ({
@@ -14,6 +15,7 @@ vi.mock('../../auth/hooks/use-auth', () => ({
 }));
 
 vi.mock('../../../shared/api/hooks', () => ({
+  useTournament: () => ({ data: undefined }),
   useWatchlist: () => ({
     isError: true,
     isLoading: false,
@@ -31,7 +33,11 @@ vi.mock('../../../shared/api/hooks', () => ({
 describe('WatchlistPage', () => {
   it('muestra un error y permite reintentar sin simular una lista vacia', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<WatchlistPage />);
+    renderWithProviders(
+      <TournamentModeProvider>
+        <WatchlistPage />
+      </TournamentModeProvider>,
+    );
 
     expect(screen.getByText(/No fue posible cargar la lista de seguimiento/)).toBeInTheDocument();
     expect(screen.queryByText('Sin seguimiento')).not.toBeInTheDocument();

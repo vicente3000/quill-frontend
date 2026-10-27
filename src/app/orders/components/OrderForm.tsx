@@ -31,14 +31,16 @@ interface OrderFormProps {
   onSymbolChange?: (symbol: string) => void;
   compact?: boolean;
   availableBalance?: number;
+  tournamentId?: string;
+  commissionRate?: number;
 }
 
-export function OrderForm({ quotes, rate, selectedSymbol, marketOpen, onSymbolChange, compact = false, availableBalance }: OrderFormProps) {
+export function OrderForm({ quotes, rate, selectedSymbol, marketOpen, onSymbolChange, compact = false, availableBalance, tournamentId, commissionRate = 0.005 }: OrderFormProps) {
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [buyMode, setBuyMode] = useState<'shares' | 'amount'>('shares');
   const [investAmount, setInvestAmount] = useState<string>('');
   const limitPriceUserTouched = useRef(false);
-  const orderMutation = useCreateOrderMutation();
+  const orderMutation = useCreateOrderMutation(tournamentId);
   const demoMode = isStubMode();
   const currentQuote = useMemo(
     () => quotes.find((quote) => quote.symbol === selectedSymbol),
@@ -154,6 +156,8 @@ export function OrderForm({ quotes, rate, selectedSymbol, marketOpen, onSymbolCh
       const apiMsg = getApiErrorMessage(error, '');
       if (apiMsg.toLowerCase().includes('cerrado')) {
         setFeedbackMessage('El mercado está cerrado en este momento. Las órdenes MARKET solo pueden ejecutarse dentro del horario de operación.');
+      } else {
+        setFeedbackMessage(apiMsg || 'No fue posible crear la orden. Revisa los datos e intenta nuevamente.');
       }
     }
   };
@@ -233,7 +237,7 @@ export function OrderForm({ quotes, rate, selectedSymbol, marketOpen, onSymbolCh
     const previewPrice = orderType === 'MARKET' ? (currentQuote?.close ?? 0) : (watchedLimitPrice ?? currentQuote?.close ?? 0);
     const previewGross = buyMode === 'shares' ? Math.max(0, watchedQuantity ?? 0) * previewPrice : Math.max(0, investAmountValue);
     const previewGrossClp = buyMode === 'amount' || priceCurrency === 'CLP' ? previewGross : previewGross * rate;
-    const previewCommissionClp = previewGrossClp * 0.005;
+    const previewCommissionClp = previewGrossClp * commissionRate;
     const previewNetClp = selectedSide === 'BUY' ? previewGrossClp + previewCommissionClp : previewGrossClp - previewCommissionClp;
     const projectedBalance = availableBalance === undefined ? undefined : selectedSide === 'BUY' ? availableBalance - previewNetClp : availableBalance + previewNetClp;
 
@@ -267,7 +271,7 @@ export function OrderForm({ quotes, rate, selectedSymbol, marketOpen, onSymbolCh
         <div className="terminal-balance"><span>Disponible</span><span>{availableBalance === undefined ? '—' : <AnimatedCurrency value={availableBalance} rate={rate} />}</span></div>
         <div className="terminal-order-summary">
           <div><span>Subtotal</span><strong><AnimatedCurrency value={previewGrossClp} sourceCurrency="CLP" rate={rate} /></strong></div>
-          <div><span>Comisión estimada · 0,5%</span><strong><AnimatedCurrency value={previewCommissionClp} sourceCurrency="CLP" rate={rate} /></strong></div>
+          <div><span>Comisión estimada · {(commissionRate * 100).toLocaleString('es-CL', { maximumFractionDigits: 4 })}%</span><strong><AnimatedCurrency value={previewCommissionClp} sourceCurrency="CLP" rate={rate} /></strong></div>
           <div className="terminal-total"><span>{selectedSide === 'BUY' ? 'Total a pagar' : 'Total a recibir'}</span><strong><AnimatedCurrency value={previewNetClp} sourceCurrency="CLP" rate={rate} /></strong></div>
           {projectedBalance !== undefined ? <div><span>Saldo posterior</span><strong className={projectedBalance < 0 ? 'text-[#EF4557]' : ''}><AnimatedCurrency value={projectedBalance} sourceCurrency="CLP" rate={rate} /></strong></div> : null}
         </div>

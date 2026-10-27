@@ -4,8 +4,8 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { authService, ordersService, usersService, adminConfigService, adminStockService } from '../api-service';
-import type { UpdateConfigInput, CreateSnapshotInput, CreateStockInput, UpdateStockPriceInput } from '../validators';
+import { authService, ordersService, usersService, adminConfigService, adminStockService, tournamentService } from '../api-service';
+import type { UpdateConfigInput, CreateSnapshotInput, CreateStockInput, UpdateStockPriceInput, CreateOrderInput } from '../validators';
 import { logError } from '../error-logging';
 import { showToast } from '../../components/toast-service';
 
@@ -173,19 +173,85 @@ export function useRemoveFriendMutation() {
   });
 }
 
-export function useCreateOrderMutation() {
+export function useCreateOrderMutation(tournamentId?: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ordersService.create,
+    mutationFn: async (order: CreateOrderInput) => {
+      if (tournamentId) {
+        await tournamentService.createOrder({ id: tournamentId, order });
+      } else {
+        await ordersService.create(order);
+      }
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['portfolio', 'summary'] });
       void queryClient.invalidateQueries({ queryKey: ['orders', 'pending'] });
       void queryClient.invalidateQueries({ queryKey: ['trades', 'recent'] });
+      if (tournamentId) {
+        void queryClient.invalidateQueries({ queryKey: ['tournaments', tournamentId] });
+      }
     },
     onError: (error) => {
       logError('[Mutation] Order creation failed:', error);
     },
+  });
+}
+
+function invalidateTournament(queryClient: ReturnType<typeof useQueryClient>, id?: string) {
+  void queryClient.invalidateQueries({ queryKey: ['tournaments'] });
+  if (id) void queryClient.invalidateQueries({ queryKey: ['tournaments', id] });
+}
+
+export function useCreateTournamentMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: tournamentService.create,
+    onSuccess: () => invalidateTournament(queryClient),
+  });
+}
+
+export function useUpdateTournamentMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: tournamentService.update,
+    onSuccess: (_, variables) => invalidateTournament(queryClient, variables.id),
+  });
+}
+
+export function useJoinTournamentMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: tournamentService.join,
+    onSuccess: (_, variables) => invalidateTournament(queryClient, variables.id),
+  });
+}
+
+export function useTournamentActionMutation(action: 'publish' | 'start' | 'finish' | 'cancel') {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => tournamentService[action](id),
+    onSuccess: (_, id) => invalidateTournament(queryClient, id),
+  });
+}
+
+export function useRotateTournamentCodeMutation() {
+  return useMutation({ mutationFn: tournamentService.rotateJoinCode });
+}
+
+export function useRemoveTournamentParticipantMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: tournamentService.removeParticipant,
+    onSuccess: (_, variables) => invalidateTournament(queryClient, variables.id),
+  });
+}
+
+export function useCancelTournamentOrderMutation(tournamentId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: string) => tournamentService.cancelOrder({ id: tournamentId, orderId }),
+    onSuccess: () => invalidateTournament(queryClient, tournamentId),
   });
 }
 

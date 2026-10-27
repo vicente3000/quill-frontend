@@ -1,10 +1,11 @@
-import type { UserRole } from './validators/auth';
+import type { AccountType, UserRole } from './validators/auth';
 
 export interface UserProfile {
   id: string;
   fullName: string;
   email: string;
   role: UserRole;
+  accountType?: AccountType;
   username?: string;
   watchlist?: string[];
   availableBalance: number;

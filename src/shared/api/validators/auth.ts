@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
-export const USER_ROLES = ['investor', 'admin'] as const;
+export const USER_ROLES = ['investor', 'teacher', 'admin'] as const;
 export type UserRole = (typeof USER_ROLES)[number];
+export const ACCOUNT_TYPES = ['ucn', 'external'] as const;
+export type AccountType = (typeof ACCOUNT_TYPES)[number];
 
 /**
  * Schema for user profile in authentication context
@@ -11,6 +13,7 @@ export const UserProfileSchema = z.object({
   fullName: z.string(),
   email: z.string().email(),
   role: z.enum(USER_ROLES).default('investor'),
+  accountType: z.enum(ACCOUNT_TYPES).optional(),
   username: z.string().optional(),
   watchlist: z.array(z.string()).default([]),
   availableBalance: z.number(),
@@ -53,6 +56,7 @@ export const AuthResponseSchema = z.object({
 });
 
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;
+export type AuthResponseInput = z.input<typeof AuthResponseSchema>;
 
 /**
  * Schema for registration response from server

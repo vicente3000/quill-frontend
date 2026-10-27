@@ -31,6 +31,18 @@ import {
   AdminStockListResponseSchema,
   type CreateStockInput,
   type UpdateStockPriceInput,
+  TournamentSchema,
+  TournamentListResponseSchema,
+  TournamentCreateResponseSchema,
+  TournamentParticipantSchema,
+  TournamentPortfolioSchema,
+  TournamentOrderSchema,
+  TournamentTradeSchema,
+  LeaderboardResponseSchema,
+  type TournamentListParams,
+  type LeaderboardParams,
+  type CreateTournamentInput,
+  type UpdateTournamentInput,
 } from './validators';
 import {
   STUB_AUTH_RESPONSE,
@@ -363,4 +375,130 @@ export const adminStockService = {
     }
     return MessageResponseSchema.parse({ message: `Stock "${symbol}" eliminado.` });
   },
+};
+
+const stubNow = new Date();
+const stubTournament = {
+  _id: 'tournament-demo-1',
+  ownerId: 'teacher-demo',
+  name: 'Liga de inversiones UCN',
+  description: 'Torneo de demostracion con datos reales del mercado.',
+  startAt: new Date(stubNow.getTime() - 24 * 60 * 60 * 1000).toISOString(),
+  endAt: new Date(stubNow.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+  status: 'ACTIVE' as const,
+  visibility: 'PUBLIC' as const,
+  initialBalance: 1_000_000,
+  commissionRate: 0.005,
+  baseCurrency: 'CLP',
+  maxParticipants: 100,
+  participantCount: 12,
+  createdAt: stubNow.toISOString(),
+  updatedAt: stubNow.toISOString(),
+};
+
+const stubTournamentPortfolio = {
+  tournamentId: stubTournament._id,
+  baseCurrency: 'CLP',
+  ...STUB_PORTFOLIO,
+  returnPercentage: 2.45,
+  finalizedAt: null,
+};
+
+export const tournamentService = {
+  list: async (_params?: TournamentListParams) => {
+    await delay(NETWORK_LATENCY_MS);
+    return TournamentListResponseSchema.parse({
+      data: [stubTournament],
+      meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+    });
+  },
+
+  get: async (_id: string) => {
+    await delay(NETWORK_LATENCY_MS);
+    return TournamentSchema.parse(stubTournament);
+  },
+
+  create: async (data: CreateTournamentInput) => {
+    await delay(NETWORK_LATENCY_MS);
+    return TournamentCreateResponseSchema.parse({
+      tournament: {
+        ...stubTournament,
+        ...data,
+        _id: `tournament-${Date.now()}`,
+        status: 'DRAFT',
+        participantCount: 0,
+        commissionRate: data.commissionRate ?? 0,
+        visibility: data.visibility ?? 'PRIVATE',
+      },
+      joinCode: 'QUILL123',
+    });
+  },
+
+  update: async ({ data }: { id: string; data: UpdateTournamentInput }) => {
+    await delay(NETWORK_LATENCY_MS);
+    return TournamentSchema.parse({ ...stubTournament, ...data });
+  },
+
+  publish: async (_id: string) => TournamentSchema.parse({ ...stubTournament, status: 'OPEN' }),
+  start: async (_id: string) => TournamentSchema.parse({ ...stubTournament, status: 'ACTIVE' }),
+  finish: async (_id: string) => TournamentSchema.parse({ ...stubTournament, status: 'FINISHED' }),
+  cancel: async (_id: string) => TournamentSchema.parse({ ...stubTournament, status: 'CANCELLED' }),
+
+  join: async ({ id }: { id: string; joinCode?: string }) => {
+    await delay(NETWORK_LATENCY_MS);
+    return TournamentParticipantSchema.parse({
+      _id: 'participant-demo',
+      tournamentId: id,
+      userId: STUB_USER_PROFILE.id,
+      availableBalance: stubTournament.initialBalance,
+      reservedBalance: 0,
+      initialBalance: stubTournament.initialBalance,
+      status: 'ACTIVE',
+      joinedAt: new Date().toISOString(),
+    });
+  },
+
+  rotateJoinCode: async (_id: string) => ({ joinCode: 'NUEVO123' }),
+  getParticipants: async (_id: string) => [],
+  removeParticipant: async (_input: { id: string; userId: string }) => ({ message: 'Participante retirado.' }),
+  getPortfolio: async (_id: string) => TournamentPortfolioSchema.parse(stubTournamentPortfolio),
+  createOrder: async ({ order }: { id: string; order: CreateOrderInput }) =>
+    TournamentOrderSchema.parse({
+      _id: `order-${Date.now()}`,
+      ...order,
+      status: order.type === 'MARKET' ? 'EXECUTED' : 'PENDING',
+      createdAt: new Date().toISOString(),
+    }),
+  getOrders: async (_id: string, _status?: string) => TournamentOrderSchema.array().parse(STUB_ORDERS),
+  cancelOrder: async ({ orderId }: { id: string; orderId: string }) =>
+    TournamentOrderSchema.parse({ ...STUB_ORDERS[0], _id: orderId, status: 'CANCELLED' }),
+  getTrades: async (_id: string, limit = 50) => TournamentTradeSchema.array().parse(STUB_TRADES.slice(0, limit)),
+  getLeaderboard: async (_id: string, _params?: LeaderboardParams) =>
+    LeaderboardResponseSchema.parse({
+      data: [
+        {
+          participantId: 'participant-demo',
+          userId: STUB_USER_PROFILE.id,
+          fullName: STUB_USER_PROFILE.fullName,
+          username: STUB_USER_PROFILE.username ?? null,
+          accountType: 'ucn',
+          availableBalance: STUB_PORTFOLIO.availableBalance,
+          reservedBalance: STUB_PORTFOLIO.reservedBalance,
+          investedValue: STUB_PORTFOLIO.investedValue,
+          totalEquity: STUB_PORTFOLIO.totalEquity,
+          returnPercentage: 2.45,
+          unrealizedProfitLoss: STUB_PORTFOLIO.unrealizedProfitLoss,
+          totalShares: STUB_PORTFOLIO.positions.reduce((sum, position) => sum + position.quantity, 0),
+          positionCount: STUB_PORTFOLIO.positions.length,
+          tradeCount: STUB_TRADES.length,
+          rank: 1,
+          officialRank: null,
+          status: 'ACTIVE',
+        },
+      ],
+      meta: { total: 1, page: 1, limit: 50, totalPages: 1 },
+    }),
+  getManagedPortfolio: async (_id: string, _userId: string) => TournamentPortfolioSchema.parse(stubTournamentPortfolio),
+  getManagedOrders: async (_id: string, _userId: string) => TournamentOrderSchema.array().parse(STUB_ORDERS),
+  getManagedTrades: async (_id: string, _userId: string, limit = 50) => TournamentTradeSchema.array().parse(STUB_TRADES.slice(0, limit)),
 };
