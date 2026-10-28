@@ -68,6 +68,7 @@ export function AppShell({ children, title, subtitle }: AppShellProps) {
           <SideBarLink to="/friends" onClick={closeSidebar}>
             {appShell.nav.friends}
           </SideBarLink>
+          <SideBarLink to="/contests" onClick={closeSidebar}>{appShell.nav.contests}</SideBarLink>
           <SideBarLink to="/settings" onClick={closeSidebar}>
             {appShell.nav.settings}
           </SideBarLink>

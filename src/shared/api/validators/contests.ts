@@ -20,6 +20,7 @@ export const ContestSchema = z.object({
   mode: z.enum(CONTEST_MODES),
   allowedAccountTypes: z.array(z.enum(CONTEST_ACCOUNT_TYPES)),
   status: z.enum(CONTEST_STATUSES),
+  participantsCount: z.number().default(0),
   createdBy: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -28,6 +29,34 @@ export const ContestSchema = z.object({
 export type Contest = z.infer<typeof ContestSchema>;
 
 export const ContestListSchema = z.array(ContestSchema);
+
+/** Contest as seen by a student (`GET /contests`): no audit fields, plus the caller's enrollment. */
+export const UserContestSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().nullable().optional(),
+  startDate: z.string(),
+  endDate: z.string(),
+  initialBalance: z.number(),
+  mode: z.enum(CONTEST_MODES),
+  allowedAccountTypes: z.array(z.enum(CONTEST_ACCOUNT_TYPES)),
+  status: z.enum(CONTEST_STATUSES),
+  participantsCount: z.number(),
+  isEnrolled: z.boolean(),
+});
+
+export type UserContest = z.infer<typeof UserContestSchema>;
+
+export const UserContestListSchema = z.array(UserContestSchema);
+
+/** Response of `POST /contests/:id/enrollments`. */
+export const ContestEnrollmentSchema = z.object({
+  contestId: z.string(),
+  userId: z.string(),
+  joinedAt: z.string(),
+});
+
+export type ContestEnrollment = z.infer<typeof ContestEnrollmentSchema>;
 
 const nameField = z
   .string()

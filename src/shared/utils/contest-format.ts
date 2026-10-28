@@ -1,5 +1,5 @@
-import type { Contest, ContestAccountType } from '../../../shared/api/validators';
-import { admin } from '../../../shared/content/strings';
+import type { Contest, ContestAccountType } from '../api/validators';
+import { admin } from '../content/strings';
 
 export function formatContestBalance(value: number) {
   return `$${value.toLocaleString('es-CL', { maximumFractionDigits: 0 })}`;

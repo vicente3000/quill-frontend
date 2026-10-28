@@ -5,7 +5,7 @@
 
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { portfolioService, marketService, ordersService, tradesService, usersService, currencyService, adminConfigService, adminStockService, adminContestService } from '../api-service';
+import { portfolioService, marketService, ordersService, tradesService, usersService, currencyService, adminConfigService, adminStockService, adminContestService, contestsService } from '../api-service';
 import { logError } from '../error-logging';
 
 /**
@@ -395,6 +395,27 @@ export function useAdminContests() {
   useEffect(() => {
     if (query.error) {
       logError('[Query] Admin contests fetch failed:', query.error);
+    }
+  }, [query.error]);
+
+  return query;
+}
+
+/**
+ * Hook to fetch the contests visible to the current user (newest first),
+ * including participant counts and the user's enrollment state
+ */
+export function useContests() {
+  const query = useQuery({
+    queryKey: ['contests'],
+    queryFn: () => contestsService.list(),
+    staleTime: 10000,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    if (query.error) {
+      logError('[Query] Contests fetch failed:', query.error);
     }
   }, [query.error]);
 

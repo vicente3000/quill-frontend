@@ -488,6 +488,7 @@ export const STUB_ADMIN_CONTESTS: Contest[] = [
     mode: 'INDIVIDUAL',
     allowedAccountTypes: ['UNIVERSITY', 'EXTERNAL'],
     status: 'UPCOMING',
+    participantsCount: 12,
     createdBy: 'stub-admin',
     createdAt: new Date(Date.now() - DAY_MS).toISOString(),
     updatedAt: new Date(Date.now() - DAY_MS).toISOString(),
@@ -502,6 +503,7 @@ export const STUB_ADMIN_CONTESTS: Contest[] = [
     mode: 'TEAM',
     allowedAccountTypes: ['UNIVERSITY'],
     status: 'ACTIVE',
+    participantsCount: 8,
     createdBy: 'stub-admin',
     createdAt: new Date(Date.now() - DAY_MS * 10).toISOString(),
     updatedAt: new Date(Date.now() - DAY_MS * 10).toISOString(),
@@ -516,8 +518,12 @@ export const STUB_ADMIN_CONTESTS: Contest[] = [
     mode: 'INDIVIDUAL',
     allowedAccountTypes: ['EXTERNAL'],
     status: 'FINISHED',
+    participantsCount: 24,
     createdBy: 'stub-admin',
     createdAt: new Date(Date.now() - DAY_MS * 70).toISOString(),
     updatedAt: new Date(Date.now() - DAY_MS * 30).toISOString(),
   },
 ];
+
+/** Ids of the contests the stub user is enrolled in (mutable: the stub `enroll` adds to it). */
+export const STUB_ENROLLED_CONTEST_IDS = new Set<string>();

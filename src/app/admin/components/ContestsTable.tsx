@@ -3,12 +3,12 @@ import { surface } from '../../../shared/design-system/surfaces';
 import { table } from '../../../shared/design-system';
 import { textSoft } from '../../../shared/design-system/typography';
 import type { Contest } from '../../../shared/api/validators';
+import { ContestStatusBadge } from '../../../shared/components/ContestStatusBadge';
 import {
-  CONTEST_STATUS_STYLES,
   formatContestAccountTypes,
   formatContestBalance,
   formatContestDate,
-} from './contest-format';
+} from '../../../shared/utils/contest-format';
 
 interface ContestsTableProps {
   contests: Contest[];
@@ -21,7 +21,7 @@ export function ContestsTable({ contests }: ContestsTableProps) {
 
   return (
     <div className={surface.tableWrapper}>
-      <table className="w-full min-w-[760px] border-separate border-spacing-0">
+      <table className="w-full min-w-[840px] border-separate border-spacing-0">
         <thead>
           <tr>
             <th className={table.header}>{fields.name}</th>
@@ -31,12 +31,13 @@ export function ContestsTable({ contests }: ContestsTableProps) {
             <th className={table.header}>{fields.startDate}</th>
             <th className={table.header}>{fields.endDate}</th>
             <th className={table.header}>{fields.status}</th>
+            <th className={table.header}>{fields.participants}</th>
           </tr>
         </thead>
         <tbody>
           {!contests.length ? (
             <tr>
-              <td colSpan={7} className={`${CELL} text-center ${textSoft}`}>
+              <td colSpan={8} className={`${CELL} text-center ${textSoft}`}>
                 {admin.contests.empty}
               </td>
             </tr>
@@ -52,12 +53,9 @@ export function ContestsTable({ contests }: ContestsTableProps) {
                 <td className={`${CELL} whitespace-nowrap text-text`}>{formatContestDate(contest.startDate)}</td>
                 <td className={`${CELL} whitespace-nowrap text-text`}>{formatContestDate(contest.endDate)}</td>
                 <td className={CELL}>
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.78rem] font-medium ${CONTEST_STATUS_STYLES[contest.status]}`}
-                  >
-                    {admin.contests.statuses[contest.status]}
-                  </span>
+                  <ContestStatusBadge status={contest.status} />
                 </td>
+                <td className={`${CELL} font-mono text-[0.88rem] text-text`}>{contest.participantsCount}</td>
               </tr>
             ))
           )}

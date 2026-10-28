@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   CreateContestFormSchema,
   CreateContestInputSchema,
+  ContestSchema,
+  UserContestSchema,
+  ContestEnrollmentSchema,
   toCreateContestInput,
 } from './contests';
 
@@ -71,5 +74,69 @@ describe('toCreateContestInput', () => {
       allowedAccountTypes: ['UNIVERSITY', 'EXTERNAL'],
     });
     expect(CreateContestInputSchema.safeParse(input).success).toBe(true);
+  });
+});
+
+const adminContest = {
+  id: 'c1',
+  name: 'Copa Quill',
+  description: null,
+  startDate: '2026-12-01T10:00:00.000Z',
+  endDate: '2026-12-31T18:00:00.000Z',
+  initialBalance: 10_000_000,
+  mode: 'INDIVIDUAL',
+  allowedAccountTypes: ['UNIVERSITY'],
+  status: 'UPCOMING',
+  createdBy: 'admin-1',
+  createdAt: '2026-11-01T10:00:00.000Z',
+  updatedAt: '2026-11-01T10:00:00.000Z',
+};
+
+describe('ContestSchema', () => {
+  it('acepta participantsCount y lo asume 0 si falta', () => {
+    expect(ContestSchema.parse({ ...adminContest, participantsCount: 5 }).participantsCount).toBe(5);
+    expect(ContestSchema.parse(adminContest).participantsCount).toBe(0);
+  });
+});
+
+describe('UserContestSchema', () => {
+  const userContest = {
+    id: 'c1',
+    name: 'Copa Quill',
+    startDate: '2026-12-01T10:00:00.000Z',
+    endDate: '2026-12-31T18:00:00.000Z',
+    initialBalance: 10_000_000,
+    mode: 'INDIVIDUAL',
+    allowedAccountTypes: ['UNIVERSITY', 'EXTERNAL'],
+    status: 'ACTIVE',
+    participantsCount: 3,
+    isEnrolled: true,
+  };
+
+  it('acepta la forma de estudiante (sin createdBy y con descripción opcional)', () => {
+    const result = UserContestSchema.safeParse(userContest);
+
+    expect(result.success).toBe(true);
+    expect(UserContestSchema.safeParse({ ...userContest, description: null }).success).toBe(true);
+    expect(UserContestSchema.safeParse({ ...userContest, description: 'Texto' }).success).toBe(true);
+  });
+
+  it('rechaza si faltan isEnrolled o participantsCount, o si el estado/modalidad no existen', () => {
+    expect(UserContestSchema.safeParse({ ...userContest, isEnrolled: undefined }).success).toBe(false);
+    expect(UserContestSchema.safeParse({ ...userContest, participantsCount: undefined }).success).toBe(false);
+    expect(UserContestSchema.safeParse({ ...userContest, status: 'OTHER' }).success).toBe(false);
+    expect(UserContestSchema.safeParse({ ...userContest, mode: 'SOLO' }).success).toBe(false);
+  });
+});
+
+describe('ContestEnrollmentSchema', () => {
+  it('acepta la respuesta de inscripción', () => {
+    const result = ContestEnrollmentSchema.safeParse({
+      contestId: 'c1',
+      userId: 'u1',
+      joinedAt: '2026-11-01T10:00:00.000Z',
+    });
+
+    expect(result.success).toBe(true);
   });
 });

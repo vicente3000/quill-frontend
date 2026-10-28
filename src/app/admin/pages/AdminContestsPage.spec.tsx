@@ -26,6 +26,7 @@ function buildContest(overrides: Partial<Contest>): Contest {
     mode: 'INDIVIDUAL',
     allowedAccountTypes: ['UNIVERSITY', 'EXTERNAL'],
     status: 'UPCOMING',
+    participantsCount: 0,
     createdBy: 'admin-1',
     createdAt: '2026-11-01T10:00:00.000Z',
     updatedAt: '2026-11-01T10:00:00.000Z',
@@ -48,6 +49,7 @@ describe('AdminContestsPage', () => {
         allowedAccountTypes: ['UNIVERSITY'],
         initialBalance: 5_000_000,
         status: 'ACTIVE',
+        participantsCount: 7,
       }),
       buildContest({ id: 'c3', name: 'Torneo Cerrado', allowedAccountTypes: ['EXTERNAL'], status: 'FINISHED' }),
     ]);
@@ -63,6 +65,7 @@ describe('AdminContestsPage', () => {
     expect(first.getByText('Universidad · Externa')).toBeInTheDocument();
     expect(first.getByText('$10.000.000')).toBeInTheDocument();
     expect(first.getByText('Próximo')).toBeInTheDocument();
+    expect(first.getByText('0')).toBeInTheDocument();
 
     const team = within(rows[2]);
     expect(team.getByText('Desafío por Equipos')).toBeInTheDocument();
@@ -70,6 +73,8 @@ describe('AdminContestsPage', () => {
     expect(team.getByText('Universidad')).toBeInTheDocument();
     expect(team.getByText('$5.000.000')).toBeInTheDocument();
     expect(team.getByText('Activo')).toBeInTheDocument();
+    expect(team.getByText('7')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Inscritos' })).toBeInTheDocument();
 
     expect(within(rows[3]).getByText('Finalizado')).toBeInTheDocument();
   });

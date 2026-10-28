@@ -36,6 +36,8 @@ import {
   ContestSchema,
   ContestListSchema,
   type CreateContestInput,
+  UserContestListSchema,
+  ContestEnrollmentSchema,
 } from './validators';
 
 export const authService = {
@@ -463,6 +465,28 @@ export const adminContestService = {
       return ContestSchema.parse(response.data);
     } catch (error) {
       logError('[API] Admin contest create failed:', error);
+      throw error;
+    }
+  },
+};
+
+export const contestsService = {
+  list: async () => {
+    try {
+      const response = await apiClient.get('/contests');
+      return UserContestListSchema.parse(response.data);
+    } catch (error) {
+      logError('[API] Contests fetch failed:', error);
+      throw error;
+    }
+  },
+
+  enroll: async (id: string) => {
+    try {
+      const response = await apiClient.post(`/contests/${id}/enrollments`);
+      return ContestEnrollmentSchema.parse(response.data);
+    } catch (error) {
+      logError(`[API] Contest enrollment failed: ${id}`, error);
       throw error;
     }
   },

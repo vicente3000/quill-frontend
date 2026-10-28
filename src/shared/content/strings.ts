@@ -356,6 +356,7 @@ export const appShell = {
     dashboard: 'Dashboard',
     watchlist: 'Seguimiento',
     friends: 'Amigos',
+    contests: 'Concursos',
     settings: 'Configuración',
   },
   focus: {
@@ -463,6 +464,7 @@ export const admin = {
       startDate: 'Inicio',
       endDate: 'Término',
       status: 'Estado',
+      participants: 'Inscritos',
     },
     placeholders: {
       name: 'Copa Quill 2026',
@@ -491,6 +493,35 @@ export const admin = {
     creating: 'Creando...',
     saving: 'Guardando...',
   },
+} as const
+
+/* ── Contests (student) ── */
+export const contests = {
+  title: 'Concursos',
+  subtitle: 'Revisa los concursos de inversión e inscríbete para participar.',
+  listTitle: 'Concursos disponibles',
+  loading: 'Cargando concursos...',
+  loadError: 'No fue posible cargar los concursos.',
+  empty: {
+    title: 'No hay concursos disponibles por ahora',
+    description: 'Cuando se publique un concurso, aparecerá aquí.',
+  },
+  fields: {
+    mode: 'Modalidad',
+    dates: 'Fechas',
+    initialBalance: 'Saldo inicial',
+  },
+  participants: (count: number) => `${count} ${count === 1 ? 'inscrito' : 'inscritos'}`,
+  dateRange: (start: string, end: string) => `${start} - ${end}`,
+  actions: {
+    enroll: 'Inscribirme',
+    enrolling: 'Inscribiendo...',
+    finished: 'Finalizado',
+    team: 'Por equipos (próximamente)',
+  },
+  enrolled: 'Inscrito',
+  enrollSuccess: (name: string) => `Te inscribiste en ${name}`,
+  enrollError: 'No fue posible inscribirte en el concurso.',
 } as const
 
 /* ── Error boundary ── */

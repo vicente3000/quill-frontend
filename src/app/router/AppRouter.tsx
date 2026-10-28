@@ -20,6 +20,9 @@ const WatchlistPage = lazy(() =>
 const FriendsPage = lazy(() =>
   import('../friends/pages/FriendsPage').then((module) => ({ default: module.FriendsPage })),
 );
+const ContestsPage = lazy(() =>
+  import('../contests/pages/ContestsPage').then((module) => ({ default: module.ContestsPage })),
+);
 const AdminConfigPage = lazy(() =>
   import('../admin/pages/AdminConfigPage').then((module) => ({ default: module.AdminConfigPage })),
 );
@@ -88,6 +91,10 @@ export function AppRouter() {
         {
           path: '/friends',
           element: <ProtectedRoute element={<FriendsPage />} />,
+        },
+        {
+          path: '/contests',
+          element: <ProtectedRoute element={<ContestsPage />} />,
         },
         {
           path: '/admin',
