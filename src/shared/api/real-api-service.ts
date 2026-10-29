@@ -45,6 +45,11 @@ import {
   type LeaderboardParams,
   type CreateTournamentInput,
   type UpdateTournamentInput,
+  ContestSchema,
+  ContestListSchema,
+  type CreateContestInput,
+  UserContestListSchema,
+  ContestEnrollmentSchema,
 } from './validators';
 
 export const authService = {
@@ -548,5 +553,59 @@ export const tournamentService = {
   getManagedTrades: async (id: string, userId: string, limit = 50) => {
     const response = await apiClient.get(`/tournaments/${id}/participants/${userId}/trades`, { params: { limit } });
     return TournamentTradeSchema.array().parse(response.data);
+  },
+};
+
+export const adminContestService = {
+  list: async () => {
+    try {
+      const response = await apiClient.get('/admin/contests');
+      return ContestListSchema.parse(response.data);
+    } catch (error) {
+      logError('[API] Admin contests fetch failed:', error);
+      throw error;
+    }
+  },
+
+  getById: async (id: string) => {
+    try {
+      const response = await apiClient.get(`/admin/contests/${id}`);
+      return ContestSchema.parse(response.data);
+    } catch (error) {
+      logError(`[API] Admin contest fetch failed: ${id}`, error);
+      throw error;
+    }
+  },
+
+  create: async (data: CreateContestInput) => {
+    try {
+      const response = await apiClient.post('/admin/contests', data);
+      return ContestSchema.parse(response.data);
+    } catch (error) {
+      logError('[API] Admin contest create failed:', error);
+      throw error;
+    }
+  },
+};
+
+export const contestsService = {
+  list: async () => {
+    try {
+      const response = await apiClient.get('/contests');
+      return UserContestListSchema.parse(response.data);
+    } catch (error) {
+      logError('[API] Contests fetch failed:', error);
+      throw error;
+    }
+  },
+
+  enroll: async (id: string) => {
+    try {
+      const response = await apiClient.post(`/contests/${id}/enrollments`);
+      return ContestEnrollmentSchema.parse(response.data);
+    } catch (error) {
+      logError(`[API] Contest enrollment failed: ${id}`, error);
+      throw error;
+    }
   },
 };

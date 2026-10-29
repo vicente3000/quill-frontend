@@ -10,7 +10,7 @@ interface AppShellProps extends PropsWithChildren {
   subtitle: string;
 }
 
-type IconName = 'home' | 'market' | 'portfolio' | 'activity' | 'star' | 'friends' | 'trophy' | 'manage';
+type IconName = 'home' | 'market' | 'portfolio' | 'activity' | 'star' | 'friends' | 'trophy' | 'flag' | 'manage';
 
 function Icon({ name }: { name: IconName }) {
   const paths: Record<IconName, ReactNode> = {
@@ -21,6 +21,7 @@ function Icon({ name }: { name: IconName }) {
     star: <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9Z"/>,
     friends: <><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c.5-4 2.5-6 6-6s5.5 2 6 6M15 15c3 0 5 1.7 5.5 5"/></>,
     trophy: <><path d="M8 4h8v5a4 4 0 0 1-8 0V4Z"/><path d="M8 6H5v2a3 3 0 0 0 3 3m8-5h3v2a3 3 0 0 1-3 3M12 13v4m-4 3h8"/></>,
+    flag: <><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></>,
     manage: <><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="10" cy="18" r="2"/></>,
   };
   return <svg viewBox="0 0 24 24" className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
@@ -32,6 +33,7 @@ const railNav: Array<[string, string, IconName]> = [
   ['/portfolio', 'Cartera', 'portfolio'],
   ['/activity', 'Actividad', 'activity'],
   ['/tournaments', 'Torneos', 'trophy'],
+  ['/contests', 'Concursos', 'flag'],
   ['/watchlist', 'Favoritos', 'star'],
   ['/friends', 'Amigos', 'friends'],
 ];
@@ -71,6 +73,7 @@ export function AppShell({ children, title, subtitle }: AppShellProps) {
             <span>{user?.fullName}</span>
             <CurrencySelector />
             <NavLink to="/settings">Configuración</NavLink>
+            {user?.role === 'admin' ? <NavLink to="/admin/config">Admin</NavLink> : null}
             <button type="button" onClick={logout}>Salir</button>
           </div>
         </details>

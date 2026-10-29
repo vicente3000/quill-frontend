@@ -4,10 +4,12 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { authService, ordersService, usersService, adminConfigService, adminStockService, tournamentService } from '../api-service';
-import type { UpdateConfigInput, CreateSnapshotInput, CreateStockInput, UpdateStockPriceInput, CreateOrderInput } from '../validators';
+import { authService, ordersService, usersService, adminConfigService, adminStockService, tournamentService, adminContestService, contestsService } from '../api-service';
+import type { UpdateConfigInput, CreateSnapshotInput, CreateStockInput, UpdateStockPriceInput, CreateOrderInput, CreateContestInput } from '../validators';
 import { logError } from '../error-logging';
 import { showToast } from '../../components/toast-service';
+import { getApiErrorMessage } from '../get-api-error-message';
+import { admin, contests } from '../../content/strings';
 
 /**
  * Hook for user login mutation
@@ -379,6 +381,46 @@ export function useDeleteAdminStock() {
     },
     onError: (error) => {
       logError('[Mutation] Admin stock delete failed:', error);
+    },
+  });
+}
+
+
+/**
+ * Hook for creating a new contest (admin)
+ */
+export function useCreateAdminContest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateContestInput) => adminContestService.create(data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'contests'] });
+      showToast(admin.contests.saved);
+    },
+    onError: (error) => {
+      logError('[Mutation] Admin contest create failed:', error);
+    },
+  });
+}
+
+/**
+ * Hook for enrolling the current user in a contest (individual enrollment)
+ * Receives the contest id and name; the name is only used for the success toast.
+ */
+export function useEnrollInContest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id }: { id: string; name: string }) => contestsService.enroll(id),
+    onSuccess: (_data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: ['contests'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'contests'] });
+      showToast(contests.enrollSuccess(variables.name));
+    },
+    onError: (error) => {
+      logError('[Mutation] Contest enrollment failed:', error);
+      showToast(getApiErrorMessage(error, contests.enrollError), 'error');
     },
   });
 }

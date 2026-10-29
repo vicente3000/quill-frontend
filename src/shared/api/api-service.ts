@@ -14,3 +14,5 @@ export const currencyService = services.currencyService;
 export const adminConfigService = services.adminConfigService;
 export const adminStockService = services.adminStockService;
 export const tournamentService = services.tournamentService;
+export const adminContestService = services.adminContestService;
+export const contestsService = services.contestsService;

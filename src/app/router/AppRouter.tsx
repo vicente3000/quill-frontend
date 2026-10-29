@@ -21,6 +21,9 @@ const WatchlistPage = lazy(() =>
 const FriendsPage = lazy(() =>
   import('../friends/pages/FriendsPage').then((module) => ({ default: module.FriendsPage })),
 );
+const ContestsPage = lazy(() =>
+  import('../contests/pages/ContestsPage').then((module) => ({ default: module.ContestsPage })),
+);
 const AdminConfigPage = lazy(() =>
   import('../admin/pages/AdminConfigPage').then((module) => ({ default: module.AdminConfigPage })),
 );
@@ -41,6 +44,9 @@ const TeacherTournamentsPage = lazy(() =>
 );
 const TeacherTournamentDetailPage = lazy(() =>
   import('../tournaments/pages/TournamentPages').then((module) => ({ default: module.TeacherTournamentDetailPage })),
+);
+const AdminContestsPage = lazy(() =>
+  import('../admin/pages/AdminContestsPage').then((module) => ({ default: module.AdminContestsPage })),
 );
 const NotFound = lazy(() => import('../not-found/NotFound'));
 
@@ -141,12 +147,17 @@ export function AppRouter() {
         { path: '/teacher/tournaments', element: <TeacherRoute element={<TeacherTournamentsPage />} /> },
         { path: '/teacher/tournaments/:id', element: <TeacherRoute element={<TeacherTournamentDetailPage />} /> },
         {
+          path: '/contests',
+          element: <ProtectedRoute element={<ContestsPage />} />,
+        },
+        {
           path: '/admin',
           element: <AdminRoute element={<AdminLayout><Outlet /></AdminLayout>} />,
           children: [
             { path: 'config', element: <AdminConfigPage /> },
             { path: 'snapshots', element: <AdminSnapshotsPage /> },
             { path: 'stocks', element: <AdminStocksPage /> },
+            { path: 'contests', element: <AdminContestsPage /> },
           ],
         },
         { path: '/', element: <Navigate to="/auth" replace /> },

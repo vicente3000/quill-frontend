@@ -1,5 +1,6 @@
 import type {
   AuthResponse,
+  Contest,
   OrderRecord,
   PortfolioSummary,
   PricePoint,
@@ -16,7 +17,7 @@ export const STUB_AUTH_RESPONSE: AuthResponse = {
     id: 'stub-user-1',
     fullName: 'Demo Quill',
     email: 'demo@quill.cl',
-    role: 'investor',
+    role: 'admin',
     accountType: 'external',
     username: 'demo_quill',
     watchlist: ['AAPL', 'TSLA'],
@@ -39,7 +40,7 @@ export const STUB_USER_PROFILE: {
   id: 'stub-user-1',
   fullName: 'Demo Quill',
   email: 'demo@quill.cl',
-  role: 'investor',
+  role: 'admin',
   accountType: 'external',
   username: 'demo_quill',
   watchlist: ['AAPL', 'TSLA'],
@@ -476,3 +477,57 @@ export function buildStubHistory(symbol: string, limit = 24): PricePoint[] {
     } as PricePoint;
   });
 }
+
+const DAY_MS = 86_400_000;
+
+/** In-memory contests for stub mode (mutable: the stub `create` prepends to it). */
+export const STUB_ADMIN_CONTESTS: Contest[] = [
+  {
+    id: 'stub-contest-3',
+    name: 'Copa Quill Verano',
+    description: 'Concurso abierto a todos los estudiantes durante el verano.',
+    startDate: new Date(Date.now() + DAY_MS * 14).toISOString(),
+    endDate: new Date(Date.now() + DAY_MS * 44).toISOString(),
+    initialBalance: 10_000_000,
+    mode: 'INDIVIDUAL',
+    allowedAccountTypes: ['UNIVERSITY', 'EXTERNAL'],
+    status: 'UPCOMING',
+    participantsCount: 12,
+    createdBy: 'stub-admin',
+    createdAt: new Date(Date.now() - DAY_MS).toISOString(),
+    updatedAt: new Date(Date.now() - DAY_MS).toISOString(),
+  },
+  {
+    id: 'stub-contest-2',
+    name: 'Desafío Universitario por Equipos',
+    description: 'Competencia por equipos exclusiva para cuentas universitarias.',
+    startDate: new Date(Date.now() - DAY_MS * 5).toISOString(),
+    endDate: new Date(Date.now() + DAY_MS * 25).toISOString(),
+    initialBalance: 5_000_000,
+    mode: 'TEAM',
+    allowedAccountTypes: ['UNIVERSITY'],
+    status: 'ACTIVE',
+    participantsCount: 8,
+    createdBy: 'stub-admin',
+    createdAt: new Date(Date.now() - DAY_MS * 10).toISOString(),
+    updatedAt: new Date(Date.now() - DAY_MS * 10).toISOString(),
+  },
+  {
+    id: 'stub-contest-1',
+    name: 'Torneo Inaugural Quill',
+    description: null,
+    startDate: new Date(Date.now() - DAY_MS * 60).toISOString(),
+    endDate: new Date(Date.now() - DAY_MS * 30).toISOString(),
+    initialBalance: 1_000_000,
+    mode: 'INDIVIDUAL',
+    allowedAccountTypes: ['EXTERNAL'],
+    status: 'FINISHED',
+    participantsCount: 24,
+    createdBy: 'stub-admin',
+    createdAt: new Date(Date.now() - DAY_MS * 70).toISOString(),
+    updatedAt: new Date(Date.now() - DAY_MS * 30).toISOString(),
+  },
+];
+
+/** Ids of the contests the stub user is enrolled in (mutable: the stub `enroll` adds to it). */
+export const STUB_ENROLLED_CONTEST_IDS = new Set<string>();

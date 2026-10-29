@@ -12,3 +12,4 @@ export * from './currency';
 export * from './admin';
 export * from './stocks';
 export * from './tournaments';
+export * from './contests';

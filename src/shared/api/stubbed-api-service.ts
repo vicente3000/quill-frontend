@@ -43,6 +43,11 @@ import {
   type LeaderboardParams,
   type CreateTournamentInput,
   type UpdateTournamentInput,
+  ContestSchema,
+  ContestListSchema,
+  type CreateContestInput,
+  UserContestListSchema,
+  ContestEnrollmentSchema,
 } from './validators';
 import {
   STUB_AUTH_RESPONSE,
@@ -60,6 +65,8 @@ import {
   buildStubHistory,
   STUB_ADMIN_CONFIG_HISTORY,
   STUB_ADMIN_STOCKS,
+  STUB_ADMIN_CONTESTS,
+  STUB_ENROLLED_CONTEST_IDS,
 } from './stub-data';
 
 const NETWORK_LATENCY_MS = 250;
@@ -501,4 +508,86 @@ export const tournamentService = {
   getManagedPortfolio: async (_id: string, _userId: string) => TournamentPortfolioSchema.parse(stubTournamentPortfolio),
   getManagedOrders: async (_id: string, _userId: string) => TournamentOrderSchema.array().parse(STUB_ORDERS),
   getManagedTrades: async (_id: string, _userId: string, limit = 50) => TournamentTradeSchema.array().parse(STUB_TRADES.slice(0, limit)),
+};
+
+function resolveStubContestStatus(startDate: string, endDate: string) {
+  const now = Date.now();
+  if (now < new Date(startDate).getTime()) return 'UPCOMING';
+  if (now > new Date(endDate).getTime()) return 'FINISHED';
+  return 'ACTIVE';
+}
+
+export const adminContestService = {
+  list: async () => {
+    await delay(NETWORK_LATENCY_MS);
+    const sorted = [...STUB_ADMIN_CONTESTS].sort(
+      (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
+    );
+    return ContestListSchema.parse(sorted);
+  },
+
+  getById: async (id: string) => {
+    await delay(NETWORK_LATENCY_MS);
+    const contest = STUB_ADMIN_CONTESTS.find((c) => c.id === id);
+    if (!contest) {
+      throw new Error('Concurso no encontrado.');
+    }
+    return ContestSchema.parse(contest);
+  },
+
+  create: async (data: CreateContestInput) => {
+    await delay(NETWORK_LATENCY_MS);
+    const now = new Date().toISOString();
+    const contest = ContestSchema.parse({
+      id: `stub-contest-${STUB_ADMIN_CONTESTS.length + 1}-${Date.now()}`,
+      name: data.name,
+      description: data.description ?? null,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      initialBalance: data.initialBalance,
+      mode: data.mode,
+      allowedAccountTypes: data.allowedAccountTypes,
+      status: resolveStubContestStatus(data.startDate, data.endDate),
+      participantsCount: 0,
+      createdBy: 'stub-admin',
+      createdAt: now,
+      updatedAt: now,
+    });
+    STUB_ADMIN_CONTESTS.unshift(contest);
+    return contest;
+  },
+};
+
+export const contestsService = {
+  list: async () => {
+    await delay(NETWORK_LATENCY_MS);
+    const sorted = [...STUB_ADMIN_CONTESTS]
+      .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+      .map((contest) => ({ ...contest, isEnrolled: STUB_ENROLLED_CONTEST_IDS.has(contest.id) }));
+    return UserContestListSchema.parse(sorted);
+  },
+
+  enroll: async (id: string) => {
+    await delay(NETWORK_LATENCY_MS);
+    const contest = STUB_ADMIN_CONTESTS.find((c) => c.id === id);
+    if (!contest) {
+      throw new Error('Concurso no encontrado.');
+    }
+    if (contest.status === 'FINISHED') {
+      throw new Error('El concurso ya finalizó.');
+    }
+    if (contest.mode === 'TEAM') {
+      throw new Error('Este concurso es por equipos; la inscripción individual no está disponible.');
+    }
+    if (STUB_ENROLLED_CONTEST_IDS.has(id)) {
+      throw new Error('Ya estás inscrito en este concurso.');
+    }
+    STUB_ENROLLED_CONTEST_IDS.add(id);
+    contest.participantsCount += 1;
+    return ContestEnrollmentSchema.parse({
+      contestId: id,
+      userId: STUB_AUTH_RESPONSE.user.id,
+      joinedAt: new Date().toISOString(),
+    });
+  },
 };

@@ -43,6 +43,18 @@ export function AdminNav() {
       >
         {admin.stocks.title}
       </NavLink>
+      <NavLink
+        to="/admin/contests"
+        className={({ isActive }) =>
+          `flex-1 rounded-[calc(var(--main-page-radius-md)-4px)] px-4 py-2.5 text-center text-[0.92rem] font-medium transition-colors ${
+            isActive
+              ? `${gradient.tabActive} text-white shadow-sm`
+              : `${textSoft} hover:text-[var(--color-text)]`
+          }`
+        }
+      >
+        {admin.contests.title}
+      </NavLink>
     </nav>
   );
 }
